@@ -195,42 +195,99 @@ class _RegisterPageState extends State<RegisterPage> {
     if (email.isNotEmpty &&
         validator.isEmail(email) &&
         password.isNotEmpty &&
-        password.length >= 8 &&
+        password.isNotEmpty &&  // Ensure password meets minimum length requirement
         firstName.isNotEmpty &&
         lastName.isNotEmpty &&
         phoneNumber.isNotEmpty &&
-        phoneNumber.length == 11) {
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      // Get the newly created user's ID
-      String userId = userCredential.user!.uid;
-      // Save user details to Firestore database
-      await FirebaseFirestore.instance.collection('users').doc(userId).set({
-        'email': email,
-        'firstName': firstName,
-        'lastName': lastName,
-        'phoneNumber': phoneNumber,
-        // Add more fields as needed
-      });
+        phoneNumber.isNotEmpty) {
+      try {
+        UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
 
-      // Registration successful
-      setState(() {
-        registrationComplete = true;
-        showError = false;
-      });
-      // All fields are filled and meet validation criteria, proceed with registration
-      setState(() {
-        registrationComplete = true; // Set registrationComplete to true
-        showError = false; // Reset showError state if validation succeeds
-      });
+        // Get the newly created user's ID
+        String userId = userCredential.user!.uid;
+        // Save user details to Firestore database
+        await FirebaseFirestore.instance.collection('users').doc(userId).set({
+          'email': email,
+          'firstName': firstName,
+          'lastName': lastName,
+          'phoneNumber': phoneNumber,
+          // Add more fields as needed
+        });
+
+        // Registration successful
+        setState(() {
+          registrationComplete = true;
+          showError = false;
+        });
+      } catch (e) {
+        // Handle any errors that occur during registration
+        print("Error during registration: $e");
+        setState(() {
+          registrationComplete = false;
+          showError = true;
+        });
+      }
     } else {
       // At least one field is empty or does not meet validation criteria, set showError to true
       setState(() {
-        registrationComplete = false; // Reset registrationComplete to false
-        showError = true; // Show error message
+        registrationComplete = false;
+        showError = true;
       });
     }
   }
+
+
+// void _registerValidation() async {
+  //   // Retrieve text from controllers
+  //   String email = _emailController.text;
+  //   String password = _passwordController.text;
+  //   String firstName = _firstNameController.text;
+  //   String lastName = _lastNameController.text;
+  //   String phoneNumber = _phoneNumberController.text;
+  //
+  //   // Validate the inputs
+  //   if (email.isNotEmpty &&
+  //       validator.isEmail(email) &&
+  //       password.isNotEmpty &&
+  //       password.length >= 8 &&
+  //       firstName.isNotEmpty &&
+  //       lastName.isNotEmpty &&
+  //       phoneNumber.isNotEmpty &&
+  //       phoneNumber.length == 11) {
+  //     UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+  //       email: email,
+  //       password: password,
+  //     );
+  //     // Get the newly created user's ID
+  //     String userId = userCredential.user!.uid;
+  //     // Save user details to Firestore database
+  //     await FirebaseFirestore.instance.collection('users').doc(userId).set({
+  //       'email': email,
+  //       'firstName': firstName,
+  //       'lastName': lastName,
+  //       'phoneNumber': phoneNumber,
+  //       // Add more fields as needed
+  //     });
+  //
+  //     // Registration successful
+  //     setState(() {
+  //       registrationComplete = true;
+  //       showError = false;
+  //     });
+  //     // All fields are filled and meet validation criteria, proceed with registration
+  //     setState(() {
+  //       registrationComplete = true; // Set registrationComplete to true
+  //       showError = false; // Reset showError state if validation succeeds
+  //     });
+  //   } else {
+  //     // At least one field is empty or does not meet validation criteria, set showError to true
+  //     setState(() {
+  //       registrationComplete = false; // Reset registrationComplete to false
+  //       showError = true; // Show error message
+  //     });
+  //   }
+  // }
 }

@@ -4,17 +4,16 @@ import 'Pages/HomePage.dart';
 import 'Pages/RegisterPage.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'dart:core';
+import 'package:firebase_auth/firebase_auth.dart';
 
 void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const LoginPage());
+  runApp(LoginApp());
 }
 
 class LoginApp extends StatelessWidget {
-  LoginApp({Key? key}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -41,6 +40,7 @@ class _LoginPageState extends State<LoginPage> {
   // Text editing controllers for email and password fields
   late TextEditingController _emailController;
   late TextEditingController _passwordController;
+  bool showError = false;
 
   @override
   void initState() {
@@ -56,15 +56,27 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  void login() {
+  void login() async {
     var email = _emailController.text;
     var password = _passwordController.text;
-    if (email == "1" && password == "1") {
-      // Navigate to Home Page after successful login
+
+    try {
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      // If authentication succeeds, navigate to the home page
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const HomePage()),
       );
+    } catch (e) {
+      // If authentication fails, show error message
+      setState(() {
+        showError = true;
+      });
+      print('Failed to login: $e');
     }
   }
 
@@ -108,6 +120,14 @@ class _LoginPageState extends State<LoginPage> {
             _buildLoginButton(),
             const SizedBox(height: 10.0),
             _buildRegisterButton(context),
+            Visibility(
+              visible: showError, // Display error text if showError is true
+              child: const Text(
+                'Login failed',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
           ],
         ),
       ),
